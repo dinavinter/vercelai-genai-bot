@@ -1,8 +1,8 @@
 import 'server-only'
 
-import {createStreamableUI} from "ai/rsc";
+import {createStreamableUI, createStreamableValue} from "ai/rsc";
 import React, {ReactNode} from "react";
-import {BotCard, SpinnerMessage} from "@/components/stocks/message";
+import {BotCard, BotMessage, SpinnerMessage} from "@/components/stocks/message";
 import {getMutableAIState} from "ai/rsc";
 import {nanoid} from "@/lib/utils";
 import {
@@ -14,10 +14,12 @@ import {
     Button,
     Grid,
     DataList,
-    Skeleton
+    Skeleton,
+    Box
 } from "@radix-ui/themes";
 import {AI} from "@/lib/chat/actions";
- 
+import {type Fields} from "@/lib/screen";
+import {CodeBlock} from "@/components/ui/codeblock";
 
 type AsyncReturnType<T extends (...args: any) => any> =
     T extends (...args: any) => Promise<infer U> ? U :
@@ -66,7 +68,7 @@ function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:S
 
 
 const spinner =(message:string)=> <Card size="1"><BotCard>{message} <SpinnerMessage  /><Skeleton /></BotCard></Card>
-function mock <T>(data:T, timeout:number=1000) {
+function mock <T>(data:T, timeout:number=4000) {
     return ()=> new Promise<T>((resolve) => setTimeout(() => resolve(data), timeout));
 }
  
@@ -117,18 +119,30 @@ export async function submitUserMessage(content: string) {
 
 
     const cards = cardsCollection(createStreamableUI());
+    const textStream = createStreamableValue('generating...');
     const ui = createStreamableUI(<SpinnerMessage/>);
-
+    const streamChat= createStreamableUI(<Box flexGrow={{ initial: "0", lg: "1" }} >
+        <BotMessage content={textStream.value} />
+    </Box>)
+    const streamCards= createStreamableUI()
+    streamCards.done(<Box flexGrow={{ initial: "0", lg: "3" }} >
+        <Flex direction="row" gap="1" overflow={"scroll"}>
+        {cards.stream.value}
+        </Flex>
+    </Box>)
+    
 
     ui.done(
-        <Flex direction="column" gap="1" overflow={"scroll"}>
-            {cards.stream.value}
+        <Flex direction="row" gap="1" overflow={"scroll"}>
+            {streamCards.value}
+            {streamChat.value}
         </Flex>);
 
      // We need to wrap this in an async IIFE to avoid blocking. Without it, the UI wouldn't render
     // while the fetch or LLM call are in progress.
     (async () => {
 
+        // textStream.update("Setting up Info...");
         await cards.card({
             preparing: spinner("Setting up Info..."),
             prepare: mock({name: "Registration Flow", industry: "E-Commerce", description: content}),
@@ -162,6 +176,9 @@ export async function submitUserMessage(content: string) {
                 </label>
             </Card>
         })
+
+        // textStream.update("Getting screens...");
+
         const screens = await screenCollection(cards); 
         const screen1 = await addScreen(screens); 
         await screen1.card({
@@ -214,27 +231,45 @@ export async function submitUserMessage(content: string) {
         }) 
         await screen1.card({
             preparing: spinner("Setting up Fields..."),
-            prepare: mock({fields: ["Email", "First Name", "Last Name"]}),
-            done: ({fields}) => <Card size="1">
+            prepare: mock<{fields:Fields}>({fields: [
+                    {
+                        tag: "input",
+                        slot: "root-field-set",
+                        type: "text",
+                        name: "name",
+                        placeholder: "Your name",
+                        autocomplete: "name",
+                        "data-required": true,
+                        "data-valid-checkmark": false,
+                    },
+                    {
+                        tag: "input",
+                        slot: "root-field-set",
+                        type: "email",
+                        name: "email",
+                        placeholder: "Your email",
+                        autocomplete: "email",
+                        "data-required": true,
+                        "data-valid-checkmark": false,
+                    },
+                    {
+                        tag: "input",
+                        slot: "root-field-set",
+                        type: "password",
+                        name: "password",
+                        placeholder: "Your password",
+                        autocomplete: "new-password",
+                        "data-required": true,
+                        "data-valid-checkmark": false
+                    }
+                ]}),
+            done: ({fields}) => <Card size="3">
                 <Text as="div" size="3" mb="1" weight="bold">
                     Fields
                 </Text>
-                <Popover.Root>
-                    <Popover.Trigger>
-                        <Button variant="soft">{fields.join(", ")}...</Button>
-                    </Popover.Trigger>
-                    <Popover.Content>
-                        <Grid>
-                            <DataList.Root>
-                                {fields.map((field: string) => (
-                                    <DataList.Item key={field}>
-                                        {field}
-                                    </DataList.Item>
-                                ))}
-                            </DataList.Root>
-                        </Grid>
-                    </Popover.Content>
-                </Popover.Root>
+                
+                <CodeBlock language={"json"} value={JSON.stringify(fields)}/>
+
             </Card>
         }) 
         await screen1.card({
