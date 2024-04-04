@@ -2,127 +2,28 @@ import 'server-only'
 
 import {createStreamableUI} from "ai/rsc";
 import React, {ReactNode} from "react";
-import {BotCard, BotMessage, SpinnerMessage} from "@/components/stocks/message";
-import {createAI, createStreamableValue, getAIState, getMutableAIState} from "ai/rsc";
+import {BotCard, SpinnerMessage} from "@/components/stocks/message";
+import {getMutableAIState} from "ai/rsc";
 import {nanoid} from "@/lib/utils";
-import {ChatOpenAI} from "@langchain/openai";import {fromEventChoiceStream} from "@/lib/chat/langchain";
-import {ChatPromptTemplate, PromptTemplate} from "@langchain/core/prompts";
-import {auth} from "@/auth";
-import {Chat} from "@/lib/types";
-import {saveChat} from "@/app/actions";
-import Textarea from "react-textarea-autosize";
-import {Dialog} from "@/components/ui/dialog";
 import {
     Flex,
     TextField,
     Text,
-    Box,
     Card,
-    Avatar,
     Popover,
     Button,
     Grid,
     DataList,
-    Skeleton,
-    Inset
+    Skeleton
 } from "@radix-ui/themes";
 import {AI} from "@/lib/chat/actions";
-
-// We need to wrap this in an async IIFE to avoid blocking. Without it, the UI wouldn't render
-async function Spinner() {
-    'use server'
-    return <SpinnerMessage/>;
-}
-
-// Define the initial state of the AI. It can be any JSON object.
-const initialAIState: {
-    role: 'user' | 'assistant' | 'system' | 'function';
-    content: string;
-    id?: string;
-    name?: string;
-}[] = [];
-
-// The initial UI state that the client will keep track of, which contains the message IDs and their UI nodes.
-const initialUIState: {
-    id: number;
-    display: React.ReactNode;
-}[] = [];
-
-
-
-export const AI2 = createAI({
-    actions: {
-        submitUserMessage
-    },
-    // Each state can be any shape of object, but for chat applications
-    // it makes sense to have an array of messages. Or you may prefer something like { id: number, messages: Message[] }
-    initialUIState,
-    initialAIState
-});
-
-
-async function meta( screenCards:ReturnType<typeof createStreamableUI>) {
-
-    const screenCard= (stream:ReturnType<typeof createStreamableUI>) =>{
-        screenCards.append(stream.value);
-        return {
-            ...stream,
-            preparing(message:string){
-                stream.append(<Card size="1">{message}... <SpinnerMessage  /><Skeleton /></Card>)
-                return {
-                    wait(timeout:number) {
-                        return new Promise((resolve) => setTimeout(resolve, timeout));
-                    }
-                }
-            }
-        }
-    }
-
-    const meta = screenCard(createStreamableUI());
-    await meta.preparing("Setting up Meta Data").wait(1000);
-    meta.done(<Card size="1">
-        <label>
-            <Text as="div" size="2" mb="1" weight="bold">
-                Screen Name
-            </Text>
-            <TextField.Root
-                value="Register"
-                placeholder="Screen Name"
-            />
-        </label>
-        <label>
-            <Text as="div" size="2" mb="1" weight="bold">
-                Screen Type
-            </Text>
-            <TextField.Root
-                defaultValue="Registration"
-                placeholder="Screen Type"
-            />
-        </label>
-        <label>
-            <Text as="div" size="2" mb="1" weight="bold">
-                Screen Description
-            </Text>
-            <TextField.Root
-                defaultValue="Register to get started"
-                placeholder="Screen Description"
-            />
-
-        </label>
-    </Card>)
-}
-
-const spinner =(message:string)=> <Card size="1"><BotCard>{message} <SpinnerMessage  /><Skeleton /></BotCard></Card>
-function mock <T>(data:T, timeout:number=1000) {
-    return ()=> new Promise<T>((resolve) => setTimeout(() => resolve(data), timeout));
-}
+ 
 
 type AsyncReturnType<T extends (...args: any) => any> =
     T extends (...args: any) => Promise<infer U> ? U :
         T extends (...args: any) => infer U ? U :
             any
 
-type InferPromise<T> = T extends Promise<infer U> ? U : T;
 
 type LazyCardProps<TPrepareData extends ()=>Promise<any> =()=>Promise<any>, T =AsyncReturnType<TPrepareData> > = {
     preparing:ReactNode,
@@ -130,24 +31,11 @@ type LazyCardProps<TPrepareData extends ()=>Promise<any> =()=>Promise<any>, T =A
     done:React.FC<T>
 }
 
-// type PrepareData<T>= ()=>PromiseLike<T> | T;
-// type InferData<TPrepareData extends PrepareData<any>> = TPrepareData extends ()=>PromiseLike<infer T> ? T : TPrepareData extends ()=> infer T ? T : any;
-//
-// type LazyCardProps<TPrepareData extends PrepareData<any> >= {
-//     preparing:ReactNode,
-//     prepare: TPrepareData,
-//     done: React.FC<InferData<TPrepareData>>
-// }
-// type CardProps<T>= {
-//     preparing:ReactNode,
-//     prepare: ()=> Promise<T>,
-//     done: React.FC<T>
-// }
+type StreamableUI = ReturnType<typeof createStreamableUI>;
 
-
-
-function cardsCollection(cardsStream:ReturnType<typeof createStreamableUI>) {
-    async function card<TCard extends LazyCardProps>(args: TCard) { 
+type CardsCollection = ReturnType<typeof cardsCollection>;
+function cardsCollection(cardsStream:StreamableUI) {
+    async function card<TCard extends LazyCardProps>(args: TCard) {
         const stream = createStreamableUI(args.preparing);
         cardsStream.append(stream.value);
         const result = await args.prepare();
@@ -157,95 +45,94 @@ function cardsCollection(cardsStream:ReturnType<typeof createStreamableUI>) {
             data: result
         }
     }
-    
+
 
     return {
-        stream: cardsStream, 
+        stream: cardsStream,
         card: card
     }
 }
 
-type CardsCollection = ReturnType<typeof cardsCollection>;
-function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:ReturnType<typeof createStreamableUI>}}) {
-        return <DataList.Item key={id}>
-            <Text as="span" size="2" mb="1" weight="bold">
-                {title}
-            </Text>
-            <Card size="1">
-                {cards.stream.value}
-            </Card>
-        </DataList.Item>;
+function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:StreamableUI}}) {
+    return <DataList.Item key={id}>
+        <Text as="span" size="2" mb="1" weight="bold">
+            {title}
+        </Text>
+        <Card size="1">
+            {cards.stream.value}
+        </Card>
+    </DataList.Item>;
 }
 
-async function addScreen(screens: {
-    stream: ReturnType<(initialValue?: React.ReactNode) => {
-        value: JSX.Element;
-        update(value: React.ReactNode): void;
-        append(value: React.ReactNode): void;
-        error(error: any): void;
-        done(...args: [] | [React.ReactNode]): void
-    }>;
-    card: <TCard extends LazyCardProps>(args: TCard) => Promise<{
-        data: any;
-        stream: {
-            value: JSX.Element;
-            update(value: React.ReactNode): void;
-            append(value: React.ReactNode): void;
-            error(error: any): void;
-            done(...args: [] | [React.ReactNode]): void
-        }
-    }>
-}) {
-    const screen = cardsCollection(createStreamableUI(<Skeleton/>));
-    await screens.card({
-        preparing: spinner("Getting screen..."),
-        prepare: mock({id: "register-screen", title: "Register", cards: screen}),
-        done: ScreenItem
 
-    })
-    return screen;
+const spinner =(message:string)=> <Card size="1"><BotCard>{message} <SpinnerMessage  /><Skeleton /></BotCard></Card>
+function mock <T>(data:T, timeout:number=1000) {
+    return ()=> new Promise<T>((resolve) => setTimeout(() => resolve(data), timeout));
+}
+ 
+
+async function screenCollection(cards: CardsCollection):Promise<CardsCollection> {
+    const {data: {screens}} = await cards.card({
+        preparing: spinner("Getting screens..."),
+        prepare: mock({screens: cardsCollection(createStreamableUI())}),
+        done: ({screens}) => <Card>
+            <Text as="span" size="3" mb="1" weight="bold">
+                Screens
+            </Text>
+            <DataList.Root>
+                {screens.stream.value}
+            </DataList.Root>
+        </Card>
+    }) 
+    return screens;
+}
+
+async function addScreen(screens: CardsCollection) {
+    const {data: {cards: screen1}} = await screens.card({
+        preparing: spinner("Getting screen..."),
+        prepare: mock({id: "register-screen", title: "Register", cards: cardsCollection(createStreamableUI())}),
+        done: ScreenItem
+    }) as { data: { cards: CardsCollection } }
+    return screen1;
 }
 
 export async function submitUserMessage(content: string) {
     'use server'
-   
+
 
     const aiState = getMutableAIState<typeof AI>();
 
     // Update the AI state with the new user message.
-      aiState.update({
-    ...aiState.get(),
-    messages: [
-      ...aiState.get().messages,
-      {
-        id: nanoid(),
-        role: 'user',
-        content
-      }
-    ]
-  })
-      
+    aiState.update({
+        ...aiState.get(),
+        messages: [
+            ...aiState.get().messages,
+            {
+                id: nanoid(),
+                role: 'user',
+                content
+            }
+        ]
+    })
 
 
-    const cards =  cardsCollection(createStreamableUI());
-    const ui = createStreamableUI(<SpinnerMessage />); 
-   
+    const cards = cardsCollection(createStreamableUI());
+    const ui = createStreamableUI(<SpinnerMessage/>);
 
-        
+
     ui.done(
-        <Flex  direction="column" gap="1" overflow={"scroll"}  >
-            {cards.stream.value} 
+        <Flex direction="column" gap="1" overflow={"scroll"}>
+            {cards.stream.value}
         </Flex>);
 
-  
-
-// while the fetch or LLM call are in progress.
+     // We need to wrap this in an async IIFE to avoid blocking. Without it, the UI wouldn't render
+    // while the fetch or LLM call are in progress.
     (async () => {
- 
+
         await cards.card({
             preparing: spinner("Setting up Info..."),
-            prepare: mock({name:"Registration Flow",industry:"E-Commerce",description:content}),
-            done: ({name,industry,description}) => <Card size="1">
+            prepare: mock({name: "Registration Flow", industry: "E-Commerce", description: content}),
+            done: ({name, industry, description}) => <Card size="1">
                 <label>
                     <Text as="div" size="2" mb="1" weight="bold">
                         Title
@@ -275,30 +162,12 @@ export async function submitUserMessage(content: string) {
                 </label>
             </Card>
         })
-        
-        const {data:{screens}} = await cards.card({
-            preparing: spinner("Getting screens..."),
-            prepare: mock({screens: cardsCollection(createStreamableUI())}),
-            done: ({screens}) => <Card > 
-                <Text as="span" size="3" mb="1" weight="bold">
-                    Screens
-                </Text> 
-                <DataList.Root>
-                    {screens.stream.value} 
-                </DataList.Root>  
-            </Card>}) as {data:{screens:CardsCollection}}
-        
-        
-       const {data:{cards: screen1}} = await screens.card({
-            preparing: spinner("Getting screen..."),
-            prepare: mock({id: "register-screen", title: "Register", cards: cardsCollection(createStreamableUI())}),
-            done: ScreenItem 
-        }) as {data:{cards:CardsCollection}}
-        
+        const screens = await screenCollection(cards); 
+        const screen1 = await addScreen(screens); 
         await screen1.card({
-            preparing: spinner("Setting up Meta Data..."), 
-            prepare: mock({name:"register-screen",type:"Registration"}), 
-            done: ({name,type}) => <Card size="1">
+            preparing: spinner("Setting up Meta Data..."),
+            prepare: mock({name: "register-screen", type: "Registration"}),
+            done: ({name, type}) => <Card size="1">
                 <label>
                     <Text as="div" size="2" mb="1" weight="bold">
                         Screen Name
@@ -318,12 +187,11 @@ export async function submitUserMessage(content: string) {
                     />
                 </label>
             </Card>
-        })
-        
+        }) 
         await screen1.card({
             preparing: spinner("Setting up UI Data..."),
-            prepare: mock({theme: "dark",layout:"vertical"}),
-            done: ({theme,layout}) => <Card size="1">
+            prepare: mock({theme: "dark", layout: "vertical"}),
+            done: ({theme, layout}) => <Card size="1">
                 <label>
                     <Text as="div" size="2" mb="1" weight="bold">
                         Theme
@@ -344,7 +212,6 @@ export async function submitUserMessage(content: string) {
                 </label>
             </Card>
         }) 
-        
         await screen1.card({
             preparing: spinner("Setting up Fields..."),
             prepare: mock({fields: ["Email", "First Name", "Last Name"]}),
@@ -356,10 +223,10 @@ export async function submitUserMessage(content: string) {
                     <Popover.Trigger>
                         <Button variant="soft">{fields.join(", ")}...</Button>
                     </Popover.Trigger>
-                    <Popover.Content >
+                    <Popover.Content>
                         <Grid>
                             <DataList.Root>
-                                {fields.map((field:string) => (
+                                {fields.map((field: string) => (
                                     <DataList.Item key={field}>
                                         {field}
                                     </DataList.Item>
@@ -367,24 +234,22 @@ export async function submitUserMessage(content: string) {
                             </DataList.Root>
                         </Grid>
                     </Popover.Content>
-                </Popover.Root> 
+                </Popover.Root>
             </Card>
         }) 
-        
         await screen1.card({
             preparing: spinner("Setting up HTML..."),
-            prepare: mock({src:"https://custom-screen-set.deno.dev/screens/Custom-ProgressiveRegistration"}),
-            done: ({src}) => <Card size="3"  style={{height:"300px"}}>
-                <iframe src={src} height={"100%"}   width={"100%"}/>
+            prepare: mock({src: "https://custom-screen-set.deno.dev/screens/Custom-ProgressiveRegistration"}),
+            done: ({src}) => <Card size="3" style={{height: "300px"}}>
+                <iframe src={src} height={"100%"} width={"100%"}/>
             </Card>
-        })
-        
+        }) 
         screen1.stream.done();
         screens.stream.done();
         cards.stream.done();
- 
-    })().then(r =>console.log("done add screen set")).catch(e => console.error("error add screen set", e));
- 
+
+    })().then(r => console.log("done add screen set")).catch(e => console.error("error add screen set", e));
+
     return {
         id: nanoid(),
         display: ui.value
