@@ -35,6 +35,11 @@ import { saveChat } from '@/app/actions'
 import { SpinnerMessage, UserMessage } from '@/components/stocks/message'
 import { Chat } from '@/lib/types'
 import { auth } from '@/auth'
+import { ReactNode } from 'react'
+import {machine, ScreenSetGenMachine} from "@/lib/chat/screen-set-gen";
+import {createActor, SnapshotFrom} from "xstate";
+import {submitUserMessageScreenSet} from "@/lib/chat/screen-set-service";
+import {submitUserMessage} from "@/lib/chat/screen-set";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -46,12 +51,12 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
   const aiState = getMutableAIState<typeof AI>()
 
   const purchasing = createStreamableUI(
-    <div className="inline-flex items-start gap-1 md:items-center">
-      {spinner}
-      <p className="mb-2">
-        Purchasing {amount} ${symbol}...
-      </p>
-    </div>
+      <div className="inline-flex items-start gap-1 md:items-center">
+        {spinner}
+        <p className="mb-2">
+          Purchasing {amount} ${symbol}...
+        </p>
+      </div>
   )
 
   const systemMessage = createStreamableUI(null)
@@ -60,30 +65,30 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
     await sleep(1000)
 
     purchasing.update(
-      <div className="inline-flex items-start gap-1 md:items-center">
-        {spinner}
-        <p className="mb-2">
-          Purchasing {amount} ${symbol}... working on it...
-        </p>
-      </div>
+        <div className="inline-flex items-start gap-1 md:items-center">
+          {spinner}
+          <p className="mb-2">
+            Purchasing {amount} ${symbol}... working on it...
+          </p>
+        </div>
     )
 
     await sleep(1000)
 
     purchasing.done(
-      <div>
-        <p className="mb-2">
-          You have successfully purchased {amount} ${symbol}. Total cost:{' '}
-          {formatNumber(amount * price)}
-        </p>
-      </div>
+        <div>
+          <p className="mb-2">
+            You have successfully purchased {amount} ${symbol}. Total cost:{' '}
+            {formatNumber(amount * price)}
+          </p>
+        </div>
     )
 
     systemMessage.done(
-      <SystemMessage>
-        You have purchased {amount} shares of {symbol} at ${price}. Total cost ={' '}
-        {formatNumber(amount * price)}.
-      </SystemMessage>
+        <SystemMessage>
+          You have purchased {amount} shares of {symbol} at ${price}. Total cost ={' '}
+          {formatNumber(amount * price)}.
+        </SystemMessage>
     )
 
     aiState.done({
@@ -105,7 +110,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
           id: nanoid(),
           role: 'system',
           content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${
-            amount * price
+              amount * price
           }]`
         }
       ]
@@ -121,277 +126,196 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
   }
 }
 
-async function submitUserMessage(content: string) {
-  'use server'
-
-  const aiState = getMutableAIState<typeof AI>()
-
-  aiState.update({
-    ...aiState.get(),
-    messages: [
-      ...aiState.get().messages,
-      {
-        id: nanoid(),
-        role: 'user',
-        content
-      }
-    ]
-  })
-
-  let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
-  let textNode: undefined | React.ReactNode
-
-  const ui = render({
-    model: 'gpt-3.5-turbo',
-    provider: openai,
-    initial: <SpinnerMessage />,
-    messages: [
-      {
-        role: 'system',
-        content: `\
-You are a stock trading conversation bot and you can help users buy stocks, step by step.
-You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
-
-Messages inside [] means that it's a UI element or a user event. For example:
-- "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
-- "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
-
-If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
-If the user just wants the price, call \`show_stock_price\` to show the price.
-If you want to show trending stocks, call \`list_stocks\`.
-If you want to show events, call \`get_events\`.
-If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
-
-Besides that, you can also chat with users and do some calculations if needed.`
-      },
-      ...aiState.get().messages.map((message: any) => ({
-        role: message.role,
-        content: message.content,
-        name: message.name
-      }))
-    ],
-    text: ({ content, done, delta }) => {
-      if (!textStream) {
-        textStream = createStreamableValue('')
-        textNode = <BotMessage content={textStream.value} />
-      }
-
-      if (done) {
-        textStream.done()
-        aiState.done({
-          ...aiState.get(),
-          messages: [
-            ...aiState.get().messages,
-            {
-              id: nanoid(),
-              role: 'assistant',
-              content
-            }
-          ]
-        })
-      } else {
-        textStream.update(delta)
-      }
-
-      return textNode
-    },
-    functions: {
-      listStocks: {
-        description: 'List three imaginary stocks that are trending.',
-        parameters: z.object({
-          stocks: z.array(
-            z.object({
-              symbol: z.string().describe('The symbol of the stock'),
-              price: z.number().describe('The price of the stock'),
-              delta: z.number().describe('The change in price of the stock')
-            })
-          )
-        }),
-        render: async function* ({ stocks }) {
-          yield (
-            <BotCard>
-              <StocksSkeleton />
-            </BotCard>
-          )
-
-          await sleep(1000)
-
-          aiState.done({
-            ...aiState.get(),
-            messages: [
-              ...aiState.get().messages,
-              {
-                id: nanoid(),
-                role: 'function',
-                name: 'listStocks',
-                content: JSON.stringify(stocks)
-              }
-            ]
-          })
-
-          return (
-            <BotCard>
-              <Stocks props={stocks} />
-            </BotCard>
-          )
-        }
-      },
-      showStockPrice: {
-        description:
-          'Get the current stock price of a given stock or currency. Use this to show the price to the user.',
-        parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.'
-            ),
-          price: z.number().describe('The price of the stock.'),
-          delta: z.number().describe('The change in price of the stock')
-        }),
-        render: async function* ({ symbol, price, delta }) {
-          yield (
-            <BotCard>
-              <StockSkeleton />
-            </BotCard>
-          )
-
-          await sleep(1000)
-
-          aiState.done({
-            ...aiState.get(),
-            messages: [
-              ...aiState.get().messages,
-              {
-                id: nanoid(),
-                role: 'function',
-                name: 'showStockPrice',
-                content: JSON.stringify({ symbol, price, delta })
-              }
-            ]
-          })
-
-          return (
-            <BotCard>
-              <Stock props={{ symbol, price, delta }} />
-            </BotCard>
-          )
-        }
-      },
-      showStockPurchase: {
-        description:
-          'Show price and the UI to purchase a stock or currency. Use this if the user wants to purchase a stock or currency.',
-        parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.'
-            ),
-          price: z.number().describe('The price of the stock.'),
-          numberOfShares: z
-            .number()
-            .describe(
-              'The **number of shares** for a stock or currency to purchase. Can be optional if the user did not specify it.'
-            )
-        }),
-        render: async function* ({ symbol, price, numberOfShares = 100 }) {
-          if (numberOfShares <= 0 || numberOfShares > 1000) {
-            aiState.done({
-              ...aiState.get(),
-              messages: [
-                ...aiState.get().messages,
-                {
-                  id: nanoid(),
-                  role: 'system',
-                  content: `[User has selected an invalid amount]`
-                }
-              ]
-            })
-
-            return <BotMessage content={'Invalid amount'} />
-          }
-
-          aiState.done({
-            ...aiState.get(),
-            messages: [
-              ...aiState.get().messages,
-              {
-                id: nanoid(),
-                role: 'function',
-                name: 'showStockPurchase',
-                content: JSON.stringify({
-                  symbol,
-                  price,
-                  numberOfShares
-                })
-              }
-            ]
-          })
-
-          return (
-            <BotCard>
-              <Purchase
-                props={{
-                  numberOfShares,
-                  symbol,
-                  price: +price,
-                  status: 'requires_action'
-                }}
-              />
-            </BotCard>
-          )
-        }
-      },
-      getEvents: {
-        description:
-          'List funny imaginary events between user highlighted dates that describe stock activity.',
-        parameters: z.object({
-          events: z.array(
-            z.object({
-              date: z
-                .string()
-                .describe('The date of the event, in ISO-8601 format'),
-              headline: z.string().describe('The headline of the event'),
-              description: z.string().describe('The description of the event')
-            })
-          )
-        }),
-        render: async function* ({ events }) {
-          yield (
-            <BotCard>
-              <EventsSkeleton />
-            </BotCard>
-          )
-
-          await sleep(1000)
-
-          aiState.done({
-            ...aiState.get(),
-            messages: [
-              ...aiState.get().messages,
-              {
-                id: nanoid(),
-                role: 'function',
-                name: 'getEvents',
-                content: JSON.stringify(events)
-              }
-            ]
-          })
-
-          return (
-            <BotCard>
-              <Events props={events} />
-            </BotCard>
-          )
-        }
-      }
-    }
-  })
-
-  return {
-    id: nanoid(),
-    display: ui
-  }
-}
+// async function submitUserMessage(content: string) {
+//   'use server'
+//
+//   const aiState = getMutableAIState<typeof AI>()
+//   const service =  createActor(machine,{
+//     input: content,
+//     snapshot: aiState.get()?.snapshot,
+//     inspect: {
+//       next(state:any) {
+//         if (state.type === '@xstate.snapshot') {
+//           aiState.update({
+//             ...aiState.get(),
+//             snapshot: state.getPersistedSnapshot(),
+//             messages: [
+//               ...aiState.get().messages,
+//               {
+//                 id: nanoid(),
+//                 role: 'user',
+//                 content
+//               }
+//             ]
+//           }) 
+//         }
+//         console.log('next', state);
+//
+//       },
+//       error(state:any) {
+//         console.error('error', state);
+//       }
+//
+//     }
+//   })
+//
+//   aiState.update({
+//     ...aiState.get(),
+//     snapshot: service.getSnapshot(),
+//     messages: [
+//       ...aiState.get().messages,
+//       {
+//         id: nanoid(),
+//         role: 'user',
+//         content
+//       }
+//     ]
+//   })
+//
+//   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
+//   let textNode: undefined | React.ReactNode
+//
+//  
+//   const ui = render({
+//     model: 'gpt-3.5-turbo',
+//     provider: openai,
+//     initial: <SpinnerMessage/>,
+//     messages: [
+//       {
+//         role: 'system',
+//         content: `You are a helpful AI assistant. helping gigya customers with generate custom screen sets,  use generate_screen_set tool for generating the screen, only then use  show_screen for rendering, chat with the user to get the parameters you need fot the tools  . `
+//       },
+//       ...aiState.get().messages.map((message: any) => ({
+//         role: message.role,
+//         content: message.content,
+//         name: message.name
+//       }))
+//     ],
+//  
+//     text: ({content, done, delta}) => {
+//       if (!textStream) {
+//         textStream = createStreamableValue('')
+//         textNode = <BotMessage content={textStream.value}/>
+//       }
+//
+//       if (done) {
+//         textStream.done()
+//         aiState.done({
+//           ...aiState.get(),
+//           messages: [
+//             ...aiState.get().messages,
+//             {
+//               id: nanoid(),
+//               role: 'assistant',
+//               content
+//             }
+//           ]
+//         })
+//       } else {
+//         textStream.update(delta)
+//       }
+//
+//       return textNode
+//     },
+//
+//     functions: {
+//       show_screen_set_draft: {
+//         description: 'generate a custom screen set for gigya customers',
+//         parameters: z.object({
+//           title: z.string().describe('Suggested title of the screen set'),
+//           industry: z.string().describe('The industry of the screen set'),
+//           flow: z.string().describe('The flow of the screen set; for example, sign up, login, etc.'),
+//          
+//         }) ,
+//        
+//         render: async function* ({ title, industry, flow }) {
+//             yield (
+//                 <BotCard>
+//                 <StocksSkeleton />
+//                 </BotCard>
+//             )
+//    
+//          
+//    
+//             await sleep(1000)
+//    
+//             aiState.done({
+//                 ...aiState.get(),
+//                 messages: [
+//                 ...aiState.get().messages,
+//                 {
+//                     id: nanoid(),
+//                     role: 'function',
+//                     name: 'generate_screen_set',
+//                     content: JSON.stringify({ title, industry, flow })
+//                 }
+//                 ]
+//             })
+//    
+//             return (
+//                 <BotCard>
+//                     <p>Screen Set Generated</p>
+//                 </BotCard>
+//             )
+//             }
+//       },
+//       show_screen: {
+//         description:
+//           'show the gigya custom screen set by using the tools. Use this if the user wants to render the screen.',
+//         parameters: z.object({
+//           name: z.string().describe('The generated unique name of the screen'),
+//           html: z.string().describe('The HTML content of the screen'),
+//           css: z.string().describe('The CSS content of the screen'),
+//           js: z.string().describe('The JS content of the screen'),
+//          
+//         }), 
+//         render: async function* ({ html,css, js,name }) {
+//                  
+//           yield (
+//             <BotCard>
+//               <StockSkeleton />
+//             </BotCard>
+//           )
+//
+//           const response = await fetch (`https://custom-screen-set.deno.dev/screens/${name}`, {
+//             method: 'POST',
+//             headers: {
+//               'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({html, css, js}),
+//           })
+//
+//           await sleep(1000)
+//
+//           aiState.done({
+//             ...aiState.get(),
+//             messages: [
+//               ...aiState.get().messages,
+//               {
+//                 id: nanoid(),
+//                 role: 'function',
+//                 name: 'showScreen',
+//                 content: JSON.stringify({ html, css, js,name })
+//               }
+//             ]
+//           })
+//
+//           return (
+//               <BotCard>
+//                 <iframe src={response.headers.get('LOCATION') || `https://custom-screen-set.deno.dev/screens/${name}`} />
+//               </BotCard>
+//
+//           )
+//         }
+//       } 
+//      }
+//   })
+//
+//   return {
+//     id: nanoid(),
+//     display: ui
+//   }
+// }
 
 export type Message = {
   role: 'user' | 'assistant' | 'system' | 'function' | 'data' | 'tool'
@@ -402,7 +326,8 @@ export type Message = {
 
 export type AIState = {
   chatId: string
-  messages: Message[]
+  messages: Message[],
+  snapshot?:SnapshotFrom<ScreenSetGenMachine>
 }
 
 export type UIState = {
@@ -412,8 +337,7 @@ export type UIState = {
 
 export const AI = createAI<AIState, UIState>({
   actions: {
-    submitUserMessage,
-    confirmPurchase
+    submitUserMessage:submitUserMessage,
   },
   initialUIState: [],
   initialAIState: { chatId: nanoid(), messages: [] },
@@ -445,6 +369,7 @@ export const AI = createAI<AIState, UIState>({
       const userId = session.user.id as string
       const path = `/chat/${chatId}`
       const title = messages[0].content.substring(0, 100)
+      
 
       const chat: Chat = {
         id: chatId,
@@ -461,7 +386,7 @@ export const AI = createAI<AIState, UIState>({
     }
   }
 })
-
+// export {AI} from './screen-set'
 export const getUIStateFromAIState = (aiState: Chat) => {
   return aiState.messages
     .filter(message => message.role !== 'system')
