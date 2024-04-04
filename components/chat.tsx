@@ -5,7 +5,7 @@ import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useUIState, useAIState } from 'ai/rsc'
 import { Session } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
@@ -57,20 +57,18 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor()
 
-  return (
+  return (  
     <div
       className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
       ref={scrollRef}
+
     >
+     
       <div
         className={cn('pb-[200px] pt-4 md:pt-10', className)}
         ref={messagesRef}
       >
-        {messages.length ? (
-          <ChatList messages={messages} isShared={false} session={session} />
-        ) : (
-          <EmptyScreen />
-        )}
+        <ChatList messages={aiState.artifacts} isShared={false} />
         <div className="h-px w-full" ref={visibilityRef} />
       </div>
       <ChatPanel

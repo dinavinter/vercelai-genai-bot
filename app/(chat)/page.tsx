@@ -18,9 +18,9 @@ export default async function IndexPage() {
 
   return (
       <Theme> 
-      <AI initialAIState={{ chatId: id, messages: [] }}>
-      <Chat id={id} session={session} missingKeys={missingKeys} />
-    </AI>
+      <AI initialAIState={{ chatId: id, messages: [], artifacts:[] }}>
+            <Chat  id={id} session={session} missingKeys={missingKeys} />
+        </AI>
     </Theme>
   )
 }

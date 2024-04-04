@@ -4,7 +4,7 @@ import {createStreamableUI, createStreamableValue} from "ai/rsc";
 import React, {ReactNode} from "react";
 import {BotCard, BotMessage, SpinnerMessage} from "@/components/stocks/message";
 import {getMutableAIState} from "ai/rsc";
-import {nanoid} from "@/lib/utils";
+import {nanoid, runAsyncFnWithoutBlocking} from "@/lib/utils";
 import {
     Flex,
     TextField,
@@ -15,7 +15,7 @@ import {
     Grid,
     DataList,
     Skeleton,
-    Box
+    Box, Section
 } from "@radix-ui/themes";
 import {AI} from "@/lib/chat/actions";
 import {type Fields} from "@/lib/screen";
@@ -60,15 +60,15 @@ function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:S
         <Text as="span" size="2" mb="1" weight="bold">
             {title}
         </Text>
-        <Card size="1">
+        <Flex direction="row" gap="1" overflow={"clip"}>
             {cards.stream.value}
-        </Card>
+        </Flex>
     </DataList.Item>;
 }
 
 
 const spinner =(message:string)=> <Card size="1"><BotCard>{message} <SpinnerMessage  /><Skeleton /></BotCard></Card>
-function mock <T>(data:T, timeout:number=4000) {
+function mock <T>(data:T, timeout:number=600) {
     return ()=> new Promise<T>((resolve) => setTimeout(() => resolve(data), timeout));
 }
  
@@ -77,14 +77,15 @@ async function screenCollection(cards: CardsCollection):Promise<CardsCollection>
     const {data: {screens}} = await cards.card({
         preparing: spinner("Getting screens..."),
         prepare: mock({screens: cardsCollection(createStreamableUI())}),
-        done: ({screens}) => <Card>
-            <Text as="span" size="3" mb="1" weight="bold">
-                Screens
-            </Text>
+        done: ({screens}) => <Box gridRow={"2/4"} >
+            <BotMessage content={"Screens"}></BotMessage>
+            
             <DataList.Root>
-                {screens.stream.value}
+                <Flex direction="column" gap="1" overflow={"clip"} wrap={"wrap"}>
+                    {screens.stream.value}
+                </Flex>
             </DataList.Root>
-        </Card>
+        </Box>
     }) 
     return screens;
 }
@@ -119,28 +120,27 @@ export async function submitUserMessage(content: string) {
 
 
     const cards = cardsCollection(createStreamableUI());
-    const textStream = createStreamableValue('generating...');
+    const textStream = createStreamableValue('');
     const ui = createStreamableUI(<SpinnerMessage/>);
     const streamChat= createStreamableUI(<Box flexGrow={{ initial: "0", lg: "1" }} >
-        <BotMessage content={textStream.value} />
+        {textStream.value? <BotMessage content={textStream.value} /> : <SpinnerMessage/>}
     </Box>)
     const streamCards= createStreamableUI()
-    streamCards.done(<Box flexGrow={{ initial: "0", lg: "3" }} >
-        <Flex direction="row" gap="1" overflow={"scroll"}>
-        {cards.stream.value}
+    streamCards.done(<Flex direction="row" gap="3" wrap={"wrap"} >
+          {cards.stream.value}
         </Flex>
-    </Box>)
-    
+   )
 
+    
     ui.done(
-        <Flex direction="row" gap="1" overflow={"scroll"}>
+        <Flex direction="column" gap="2" overflow={"hidden"} wrap={"wrap"}>
             {streamCards.value}
-            {streamChat.value}
+            {/*<Section>{streamChat.value}</Section>*/}
         </Flex>);
 
      // We need to wrap this in an async IIFE to avoid blocking. Without it, the UI wouldn't render
     // while the fetch or LLM call are in progress.
-    (async () => {
+    runAsyncFnWithoutBlocking (async () => {
 
         // textStream.update("Setting up Info...");
         await cards.card({
@@ -177,11 +177,11 @@ export async function submitUserMessage(content: string) {
             </Card>
         })
 
-        // textStream.update("Getting screens...");
+        textStream.update("Getting screens...");
 
-        const screens = await screenCollection(cards); 
-        const screen1 = await addScreen(screens); 
-        await screen1.card({
+        // const screens = await screenCollection(cards); 
+        // const screen1 = await addScreen(screens); 
+        await cards.card({
             preparing: spinner("Setting up Meta Data..."),
             prepare: mock({name: "register-screen", type: "Registration"}),
             done: ({name, type}) => <Card size="1">
@@ -205,7 +205,7 @@ export async function submitUserMessage(content: string) {
                 </label>
             </Card>
         }) 
-        await screen1.card({
+        await cards.card({
             preparing: spinner("Setting up UI Data..."),
             prepare: mock({theme: "dark", layout: "vertical"}),
             done: ({theme, layout}) => <Card size="1">
@@ -229,7 +229,7 @@ export async function submitUserMessage(content: string) {
                 </label>
             </Card>
         }) 
-        await screen1.card({
+        await cards.card({
             preparing: spinner("Setting up Fields..."),
             prepare: mock<{fields:Fields}>({fields: [
                     {
@@ -272,18 +272,18 @@ export async function submitUserMessage(content: string) {
 
             </Card>
         }) 
-        await screen1.card({
+        await cards.card({
             preparing: spinner("Setting up HTML..."),
             prepare: mock({src: "https://custom-screen-set.deno.dev/screens/Custom-ProgressiveRegistration"}),
             done: ({src}) => <Card size="3" style={{height: "300px"}}>
                 <iframe src={src} height={"100%"} width={"100%"}/>
             </Card>
         }) 
-        screen1.stream.done();
-        screens.stream.done();
+        // screen1.stream.done();
+        // screens.stream.done();
         cards.stream.done();
 
-    })().then(r => console.log("done add screen set")).catch(e => console.error("error add screen set", e));
+    })
 
     return {
         id: nanoid(),

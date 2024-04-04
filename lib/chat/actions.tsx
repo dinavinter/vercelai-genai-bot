@@ -1,45 +1,21 @@
 import 'server-only'
 
-import {
-  createAI,
-  createStreamableUI,
-  getMutableAIState,
-  getAIState,
-  render,
-  createStreamableValue
-} from 'ai/rsc'
+import {createAI, createStreamableUI, getAIState, getMutableAIState} from 'ai/rsc'
 import OpenAI from 'openai'
 
-import {
-  spinner,
-  BotCard,
-  BotMessage,
-  SystemMessage,
-  Stock,
-  Purchase
-} from '@/components/stocks'
-
-import { z } from 'zod'
-import { EventsSkeleton } from '@/components/stocks/events-skeleton'
-import { Events } from '@/components/stocks/events'
-import { StocksSkeleton } from '@/components/stocks/stocks-skeleton'
-import { Stocks } from '@/components/stocks/stocks'
-import { StockSkeleton } from '@/components/stocks/stock-skeleton'
-import {
-  formatNumber,
-  runAsyncFnWithoutBlocking,
-  sleep,
-  nanoid
-} from '@/lib/utils'
-import { saveChat } from '@/app/actions'
-import { SpinnerMessage, UserMessage } from '@/components/stocks/message'
-import { Chat } from '@/lib/types'
-import { auth } from '@/auth'
-import { ReactNode } from 'react'
-import {machine, ScreenSetGenMachine} from "@/lib/chat/screen-set-gen";
-import {createActor, SnapshotFrom} from "xstate";
-import {submitUserMessageScreenSet} from "@/lib/chat/screen-set-service";
+import {BotCard, BotMessage, Purchase, spinner, Stock, SystemMessage} from '@/components/stocks'
+import {Events} from '@/components/stocks/events'
+import {Stocks} from '@/components/stocks/stocks'
+import {formatNumber, nanoid, runAsyncFnWithoutBlocking, sleep} from '@/lib/utils'
+import {saveChat} from '@/app/actions'
+import {SpinnerMessage, UserMessage} from '@/components/stocks/message'
+import {Chat} from '@/lib/types'
+import {auth} from '@/auth'
+import * as React from 'react'
+import {ScreenSetGenMachine} from "@/lib/chat/screen-set-gen";
+import {SnapshotFrom} from "xstate";
 import {submitUserMessage} from "@/lib/chat/screen-set";
+import {Examples} from "@/components/examples";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -327,7 +303,7 @@ export type Message = {
 export type AIState = {
   chatId: string
   messages: Message[],
-  snapshot?:SnapshotFrom<ScreenSetGenMachine>
+  artifacts: Message[]
 }
 
 export type UIState = {
@@ -338,9 +314,14 @@ export type UIState = {
 export const AI = createAI<AIState, UIState>({
   actions: {
     submitUserMessage:submitUserMessage,
+    
   },
-  initialUIState: [],
-  initialAIState: { chatId: nanoid(), messages: [] },
+  
+  initialUIState: [{
+    id: nanoid(),
+    display: <Examples />
+  }],
+  initialAIState: { chatId: nanoid(), messages: [ ] , artifacts:[]},
   unstable_onGetUIState: async () => {
     'use server'
 
