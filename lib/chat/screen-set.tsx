@@ -122,35 +122,93 @@ type AsyncReturnType<T extends (...args: any) => any> =
         T extends (...args: any) => infer U ? U :
             any
 
-type LazyCardProps<prepareT extends ()=>Promise<any> =()=>Promise<any>, T =AsyncReturnType<prepareT> > = {
+type InferPromise<T> = T extends Promise<infer U> ? U : T;
+
+type LazyCardProps<TPrepareData extends ()=>Promise<any> =()=>Promise<any>, T =AsyncReturnType<TPrepareData> > = {
     preparing:ReactNode,
-    prepare:prepareT & (()=>Promise<T>),
-    done:(arg:T)=> ReactNode
+    prepare: TPrepareData & (()=>Promise<T>),
+    done:React.FC<T>
 }
 
- function cardsCollection(cardsStream:ReturnType<typeof createStreamableUI>) {
-    return {stream: cardsStream, card:async (args:LazyCardProps):Promise<{
-            stream:ReturnType<typeof createStreamableUI>,
-            data:AsyncReturnType<typeof args.prepare>
-        }>=> {
+// type PrepareData<T>= ()=>PromiseLike<T> | T;
+// type InferData<TPrepareData extends PrepareData<any>> = TPrepareData extends ()=>PromiseLike<infer T> ? T : TPrepareData extends ()=> infer T ? T : any;
+//
+// type LazyCardProps<TPrepareData extends PrepareData<any> >= {
+//     preparing:ReactNode,
+//     prepare: TPrepareData,
+//     done: React.FC<InferData<TPrepareData>>
+// }
+// type CardProps<T>= {
+//     preparing:ReactNode,
+//     prepare: ()=> Promise<T>,
+//     done: React.FC<T>
+// }
+
+
+
+function cardsCollection(cardsStream:ReturnType<typeof createStreamableUI>) {
+    async function card<TCard extends LazyCardProps>(args: TCard) { 
         const stream = createStreamableUI(args.preparing);
         cardsStream.append(stream.value);
         const result = await args.prepare();
         stream.done(args.done(result));
         return {
             stream,
-            data:result
+            data: result
         }
-    }}
+    }
+    
+
+    return {
+        stream: cardsStream, 
+        card: card
+    }
 }
 
+type CardsCollection = ReturnType<typeof cardsCollection>;
+function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:ReturnType<typeof createStreamableUI>}}) {
+        return <DataList.Item key={id}>
+            <Text as="span" size="2" mb="1" weight="bold">
+                {title}
+            </Text>
+            <Card size="1">
+                {cards.stream.value}
+            </Card>
+        </DataList.Item>;
+}
+
+async function addScreen(screens: {
+    stream: ReturnType<(initialValue?: React.ReactNode) => {
+        value: JSX.Element;
+        update(value: React.ReactNode): void;
+        append(value: React.ReactNode): void;
+        error(error: any): void;
+        done(...args: [] | [React.ReactNode]): void
+    }>;
+    card: <TCard extends LazyCardProps>(args: TCard) => Promise<{
+        data: any;
+        stream: {
+            value: JSX.Element;
+            update(value: React.ReactNode): void;
+            append(value: React.ReactNode): void;
+            error(error: any): void;
+            done(...args: [] | [React.ReactNode]): void
+        }
+    }>
+}) {
+    const screen = cardsCollection(createStreamableUI(<Skeleton/>));
+    await screens.card({
+        preparing: spinner("Getting screen..."),
+        prepare: mock({id: "register-screen", title: "Register", cards: screen}),
+        done: ScreenItem
+
+    })
+    return screen;
+}
 
 export async function submitUserMessage(content: string) {
     'use server'
-    // let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
-    // if (!textStream) { 
-    //     textStream = createStreamableValue('')
-    //  }
+   
 
     const aiState = getMutableAIState<typeof AI>();
 
@@ -178,8 +236,10 @@ export async function submitUserMessage(content: string) {
         <Flex  direction="column" gap="1" overflow={"scroll"}  >
             {cards.stream.value} 
         </Flex>);
-     
-    // while the fetch or LLM call are in progress.
+
+  
+
+// while the fetch or LLM call are in progress.
     (async () => {
  
         await cards.card({
@@ -216,10 +276,9 @@ export async function submitUserMessage(content: string) {
             </Card>
         })
         
-        const screens= cardsCollection(createStreamableUI(<Skeleton />));
-        await cards.card({
+        const {data:{screens}} = await cards.card({
             preparing: spinner("Getting screens..."),
-            prepare: mock({screens: screens}),
+            prepare: mock({screens: cardsCollection(createStreamableUI())}),
             done: ({screens}) => <Card > 
                 <Text as="span" size="3" mb="1" weight="bold">
                     Screens
@@ -227,23 +286,14 @@ export async function submitUserMessage(content: string) {
                 <DataList.Root>
                     {screens.stream.value} 
                 </DataList.Root>  
-            </Card>})
+            </Card>}) as {data:{screens:CardsCollection}}
         
-        const screen1= cardsCollection(createStreamableUI(<Skeleton />));
-        await screens.card({
+        
+       const {data:{cards: screen1}} = await screens.card({
             preparing: spinner("Getting screen..."),
-            prepare: mock({id:"register-screen", title:"Register", cards: screen1}),
-            done: ({id, title, cards}) =>  
-                <DataList.Item key={id}>
-                    <Text as="span" size="2" mb="1" weight="bold">
-                        {title}
-                    </Text>
-                    <Card size="1">
-                        {cards.stream.value}
-                    </Card>
-                </DataList.Item> 
-             
-        })
+            prepare: mock({id: "register-screen", title: "Register", cards: cardsCollection(createStreamableUI())}),
+            done: ScreenItem 
+        }) as {data:{cards:CardsCollection}}
         
         await screen1.card({
             preparing: spinner("Setting up Meta Data..."), 
@@ -328,9 +378,10 @@ export async function submitUserMessage(content: string) {
                 <iframe src={src} height={"100%"}   width={"100%"}/>
             </Card>
         })
+        
         screen1.stream.done();
         screens.stream.done();
-         cards.stream.done();
+        cards.stream.done();
  
     })().then(r =>console.log("done add screen set")).catch(e => console.error("error add screen set", e));
  
