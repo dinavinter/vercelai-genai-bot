@@ -2,18 +2,34 @@ import { Editor } from "@monaco-editor/react";
 import style from "./editor.module.css";
 import { useState } from "react";
 
-export default function WebEditor({ onChange, data }) {
+   type HTMLPreviewProps = {
+    html: string,
+    css: string,
+    js: string
+}
 
-    const handleEditorDidMount = (value, event) => {
+export type WebEditorProps = {
+    onChange: (values: any) => any;
+    data: HTMLPreviewProps
+};
+export default function WebEditor({ onChange, data }:WebEditorProps) {
+    const { html, css, js } = data;
+    const srcDoc = `
+        <body>${html}</body>
+        <style>${css}</style>
+        <script>${js}</script>
+    `;
+
+    const handleEditorDidMount = (value: any, event: any) => {
         fileName === "index.html"
-            ? onChange((values)=>{
+            ? onChange((values: HTMLPreviewProps)=>{
                 return {...values,html:value}
             })
             : fileName === "style.css"
-                ? onChange((values)=>{
+                ? onChange((values:HTMLPreviewProps)=>{
                     return {...values,css:value}
                 })
-                : onChange((values)=>{
+                : onChange((values:HTMLPreviewProps)=>{
                     return {...values,js:value}
                 })
     };
@@ -36,12 +52,13 @@ export default function WebEditor({ onChange, data }) {
         },
     };
     console.log(files);
-    const [fileName, setFileName] = useState("index.html");
+    const [fileName, setFileName] = useState("index.html" as keyof typeof files);
     const file = files[fileName];
 
     return (
         <div>
             <div className={style.btnWrapper}>
+                
                 <button
                     disabled={fileName === "index.html"}
                     onClick={() => setFileName("index.html")}
@@ -75,15 +92,33 @@ export default function WebEditor({ onChange, data }) {
                     defaultValue={file.value}
                     defaultLanguage={file.language}
                     options={{
-                        fontSize: "18px",
+                        fontSize: 18,
                         minimap: {
                             enabled: false,
+                            
                         },
+                        
                         formatOnPaste: true,
                         formatOnType: true,
-                        autoIndent: true,
-                        autoClosingBrackets: true,
-                        autoClosingQuotes: true,
+                        autoIndent: "brackets",
+                        autoClosingBrackets: "always",
+                        autoClosingQuotes: "languageDefined",
+                        selectOnLineNumbers: true,
+                        roundedSelection: false,
+                        cursorStyle: 'line',
+                        automaticLayout: true,
+                        wordWrap: "on",
+                        scrollbar: {
+                            vertical: "auto",
+                            horizontal: "auto",
+                        },
+                        selectionClipboard: true,
+                        quickSuggestions: {
+                            other: true,
+                            comments: false,
+                            strings: false,
+                        },
+                        
                     }}
                 />
             </div>
