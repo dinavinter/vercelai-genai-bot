@@ -12,7 +12,7 @@ import {Chat} from '@/lib/types'
 import * as React from 'react'
 import {submitUserMessage} from "@/lib/chat/screen-set";
 import {Examples} from "@/components/examples";
-import {screenArtifactExample} from "@/lib/chat/screen-artifact-example";
+import {  screenArtifactExamples} from "@/lib/chat/screen-artifact-example";
 
 
 // const openai = new OpenAI({
@@ -33,9 +33,9 @@ export type AIState = {
   messages: Message[],
   artifacts: {
     [key:string]:{
-    html: string
-    css: string
-    js: string 
+    html?: string
+    css?: string
+    js?: string 
   }}
 }
 
@@ -70,9 +70,7 @@ export const AI = createAI<AIState, UIState>({
   initialAIState: { 
       chatId: nanoid(),
       messages: [ ] , 
-      artifacts: {
-      'responsive-registration': screenArtifactExample
-    }}
+      artifacts: screenArtifactExamples}
 })
 // export {AI} from './screen-set'
 export const getUIStateFromAIState = (aiState: Chat) => {

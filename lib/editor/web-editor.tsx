@@ -3,9 +3,9 @@ import style from "./editor.module.css";
 import { useState } from "react";
 
    type HTMLPreviewProps = {
-    html: string,
-    css: string,
-    js: string
+    html?: string,
+    css?: string,
+    js?: string
 }
 
 export type WebEditorProps = {
@@ -13,7 +13,7 @@ export type WebEditorProps = {
     data: HTMLPreviewProps
 };
 export default function WebEditor({ onChange, data }:WebEditorProps) {
-    const { html, css, js } = data;
+    const { html, css, js } = data || { html: "", css: "", js: "" }
     const srcDoc = `
         <body>${html}</body>
         <style>${css}</style>
@@ -58,30 +58,19 @@ export default function WebEditor({ onChange, data }:WebEditorProps) {
     return (
         <div>
             <div className={style.btnWrapper}>
-                
-                <button
-                    disabled={fileName === "index.html"}
-                    onClick={() => setFileName("index.html")}
-                    className={style.btn}
-                >
-                    HTML
-                </button>
-
-                <button
-                    disabled={fileName === "style.css"}
-                    onClick={() => setFileName("style.css")}
-                    className={style.btn}
-                >
-                    CSS
-                </button>
-                <button
-                    disabled={fileName === "script.js"}
-                    onClick={() => setFileName("script.js")}
-                    className={style.btn}
-                >
-                    JS
-                </button> 
-            </div>
+                {Object.keys(files).map((key) => {
+                    return (
+                        <button
+                            key={key}
+                            disabled={fileName === key}
+                            onClick={() => setFileName(key as keyof typeof files)}
+                            className={style.btn}
+                        >
+                            {key}
+                        </button>
+                    );
+                })}
+                            </div>
             <div className={style.editor}>
                 <Editor
                     width="100%"
