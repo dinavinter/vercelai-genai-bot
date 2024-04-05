@@ -1,14 +1,20 @@
 import { SidebarDesktop } from '@/components/sidebar-desktop'
+import React from "react";
+import {Theme} from "@radix-ui/themes";
 
 interface ChatLayoutProps {
   children: React.ReactNode
 }
 
 export default async function ChatLayout({ children }: ChatLayoutProps) {
-  return (
-    <div className="relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden">
+    // className="relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden"
+
+    return ( 
+        <div >
       <SidebarDesktop />
-      {children}
+            <Theme> 
+            {children}
+            </Theme>
     </div>
   )
 }

@@ -12,6 +12,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Message } from '@/lib/chat/actions'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { toast } from 'sonner'
+import WebEditor from "@/lib/editor/web-editor";
+import {ScreenCodeEditor} from "@/lib/editor/screen-code-editor";
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -24,7 +26,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
-  const [messages] = useUIState()
+  const [{messages}] = useUIState()
   const [aiState] = useAIState()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
@@ -68,7 +70,8 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
         className={cn('pb-[200px] pt-4 md:pt-10', className)}
         ref={messagesRef}
       >
-        <ChatList messages={aiState.artifacts} isShared={false} />
+        <ScreenCodeEditor id={id || "no-id"} />
+        {/*<ChatList messages={aiState.artifacts} isShared={false} />*/}
         <div className="h-px w-full" ref={visibilityRef} />
       </div>
       <ChatPanel

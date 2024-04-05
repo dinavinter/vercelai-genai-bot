@@ -23,8 +23,8 @@ export const FieldsCard = ({fields}:{fields:Fields}) => {
                         </Button>
                     <Flex wrap={"wrap"} direction={"row"}  gap={"1"}>
                         {open ? <Cross2Icon /> : fields.map((field, i) => (
-                            <Box box-shadow > 
-                                <Code contentEditable key={i} className="Text">{field.name};</Code>
+                            <Box box-shadow={"-6"} > 
+                                <Code  key={i} className="Text">{field.name};</Code>
                             </Box>    
                         ))}
                         

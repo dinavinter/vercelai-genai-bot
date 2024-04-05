@@ -93,22 +93,24 @@ export function Examples() {
                     index > 1 && 'hidden md:block'
                 }`}
                 onClick={async () => {
-                    setMessages(currentMessages => [
-                        ...currentMessages,
+                    setMessages(current => ({
+                        ...current,
+                        messages:[...current.messages,
                         {
                             id: nanoid(),
                             display: <UserMessage>{example.message}</UserMessage>
-                        }
-                    ])
+                        }]}
+                    ))
 
                     const responseMessage = await submitUserMessage(
                         example.message
                     )
 
-                    setMessages(currentMessages => [
-                        ...currentMessages,
+                    setMessages(current => ({
+                        ...current,
+                        messages:[...current.messages,
                         responseMessage
-                    ])
+                    ]}))
                 }}
             >
                 <div className="text-sm font-semibold">{example.heading}</div>

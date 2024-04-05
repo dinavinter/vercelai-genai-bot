@@ -67,7 +67,7 @@ export function ChatPanel({
   scrollToBottom
 }: ChatPanelProps) {
   const [aiState] = useAIState()
-  const [messages, setMessages] = useUIState<typeof AI>()
+  const [messages] = useUIState<typeof AI>()
      
   return (
     <div

@@ -10,8 +10,9 @@ export interface ChatList {
   isShared: boolean
 }
 
-export function ChatList({ messages, session, isShared }: ChatList) {
-  if (!messages.length) {
+export function ChatList({ messages:{messages, ...msgs}, session, isShared }: ChatList) {
+  console.log(messages, msgs, session, isShared)
+  if (!messages?.length) {
     return null
   }
 

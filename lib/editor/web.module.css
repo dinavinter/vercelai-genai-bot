@@ -1,0 +1,16 @@
+
+.editor {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    justify-content: space-between;
+    background-color: black;
+}
+@media (max-width: 800px) {
+    .wrapper {
+        margin-top: 0;
+        flex-direction: column;
+        width: 100vw;
+    }
+}
+  
