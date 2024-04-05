@@ -1,25 +1,33 @@
 import 'server-only'
 
-import {createStreamableUI, createStreamableValue} from "ai/rsc";
+import {createStreamableUI, createStreamableValue, getMutableAIState} from "ai/rsc";
 import React, {ReactNode} from "react";
 import {BotCard, BotMessage, SpinnerMessage} from "@/components/stocks/message";
-import {getMutableAIState} from "ai/rsc";
 import {nanoid, runAsyncFnWithoutBlocking} from "@/lib/utils";
 import {
-    Flex,
-    TextField,
-    Text,
+    Box,
+    
     Card,
-    Popover,
-    Button,
-    Grid,
+    Code,
+    Container,
     DataList,
+    Flex,
+    Inset,
     Skeleton,
-    Box, Section
+    Text,
+    TextField,
+    Theme
 } from "@radix-ui/themes";
 import {AI} from "@/lib/chat/actions";
 import {type Fields} from "@/lib/screen";
 import {CodeBlock} from "@/components/ui/codeblock";
+import {FieldsCard} from './fields';
+import Textarea from "react-textarea-autosize";
+import {LayoutButton, LayoutToggleIcon, ThemeButton, ThemeToggle} from "@/components/theme-toggle";
+import {LayoutIcon, ViewHorizontalIcon, ViewVerticalIcon} from "@radix-ui/react-icons";
+import {IconMoon} from "@/components/ui/icons";
+import { Button } from '@/components/ui/button'
+
 
 type AsyncReturnType<T extends (...args: any) => any> =
     T extends (...args: any) => Promise<infer U> ? U :
@@ -56,14 +64,16 @@ function cardsCollection(cardsStream:StreamableUI) {
 }
 
 function ScreenItem({id, title, cards}:{id:string, title:string, cards:{stream:StreamableUI}}) {
-    return <DataList.Item key={id}>
-        <Text as="span" size="2" mb="1" weight="bold">
-            {title}
-        </Text>
-        <Flex direction="row" gap="1" overflow={"clip"}>
-            {cards.stream.value}
-        </Flex>
-    </DataList.Item>;
+    return <Container size="3" maxWidth={"30rem"} maxHeight={"60rem"} p={"4"} > 
+        <BotCard showAvatar={true} >
+            <Text as="span" size="2" mb="1" weight="bold">
+                {title}
+            </Text>
+                <Flex direction="column" gap="2" wrap={"wrap"} p={"4"}> 
+                    {cards.stream.value}
+                </Flex>
+    </BotCard>
+    </Container>;
 }
 
 
@@ -78,8 +88,7 @@ async function screenCollection(cards: CardsCollection):Promise<CardsCollection>
         preparing: spinner("Getting screens..."),
         prepare: mock({screens: cardsCollection(createStreamableUI())}),
         done: ({screens}) => <Box gridRow={"2/4"} >
-            <BotMessage content={"Screens"}></BotMessage>
-            
+            <BotMessage content={"Screens"}></BotMessage> 
             <DataList.Root>
                 <Flex direction="column" gap="1" overflow={"clip"} wrap={"wrap"}>
                     {screens.stream.value}
@@ -93,7 +102,7 @@ async function screenCollection(cards: CardsCollection):Promise<CardsCollection>
 async function addScreen(screens: CardsCollection) {
     const {data: {cards: screen1}} = await screens.card({
         preparing: spinner("Getting screen..."),
-        prepare: mock({id: "register-screen", title: "Register", cards: cardsCollection(createStreamableUI())}),
+        prepare: mock({id: "register-screen", title: "Register Screen", cards: cardsCollection(createStreamableUI())}),
         done: ScreenItem
     }) as { data: { cards: CardsCollection } }
     return screen1;
@@ -141,95 +150,79 @@ export async function submitUserMessage(content: string) {
      // We need to wrap this in an async IIFE to avoid blocking. Without it, the UI wouldn't render
     // while the fetch or LLM call are in progress.
     runAsyncFnWithoutBlocking (async () => {
-
+     
         // textStream.update("Setting up Info...");
         await cards.card({
             preparing: spinner("Setting up Info..."),
-            prepare: mock({name: "Registration Flow", industry: "E-Commerce", description: content}),
-            done: ({name, industry, description}) => <Card size="1">
-                <label>
+            prepare: mock({name: "custom-ecommerce-screen-set", industry: "E-Commerce", description: content}),
+            done: ({name, industry, description}) =>
+                <BotCard showAvatar={true}>
                     <Text as="div" size="2" mb="1" weight="bold">
-                        Title
+                        Info
                     </Text>
-                    <TextField.Root
-                        value={name}
-                        placeholder="E-Commerce"
-                    />
-                </label>
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Industry
-                    </Text>
-                    <TextField.Root
-                        value={industry}
-                        placeholder="E-Commerce"
-                    />
-                </label>
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Description
-                    </Text>
-                    <TextField.Root
-                        value={description}
-                        placeholder={description}
-                    />
-                </label>
-            </Card>
+                    <Card  > 
+                        <DataList.Root> 
+                            <DataList.Item> 
+                               <DataList.Label>Name</DataList.Label>
+                                <DataList.Value contentEditable>{name}</DataList.Value> 
+                            </DataList.Item>
+                            <DataList.Item>
+                                <DataList.Label>Industry</DataList.Label>
+                                <DataList.Value contentEditable>{industry}</DataList.Value>
+                            </DataList.Item>
+                            <DataList.Item>
+                                <DataList.Label>Use Case</DataList.Label>
+                                <Text as="p">
+                                    {description}   
+                                </Text>
+                                {/*<DataList.Value contentEditable>{description}</DataList.Value> */}
+                            </DataList.Item>
+                       </DataList.Root>
+                    </Card> 
+                </BotCard>
+           
         })
 
         textStream.update("Getting screens...");
 
         // const screens = await screenCollection(cards); 
-        // const screen1 = await addScreen(screens); 
-        await cards.card({
-            preparing: spinner("Setting up Meta Data..."),
+        const screen1 = await addScreen(cards); 
+        
+        // await cards.card({
+        //     preparing: spinner("Screens..."),
+        //     prepare: mock({}),
+        //     done: () => <BotCard  >
+        //         <BotMessage content={"Screens"}></BotMessage> 
+        //     </BotCard>
+        // })
+        await screen1.card({
+            preparing: spinner("Setting screen..."),
             prepare: mock({name: "register-screen", type: "Registration"}),
-            done: ({name, type}) => <Card size="1">
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Screen Name
+            done: ({name, type}) => 
+                <BotCard showAvatar={false}>
+                    <Text as="div" size="2" mb="1" >  
+                        <Code variant={"solid"}>id: {name}</Code> 
                     </Text>
-                    <TextField.Root
-                        value={name}
-                        placeholder="Screen Name"
-                    />
-                </label>
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Screen Type
+                    <Text as="div" size="2" mb="1" >
+                        <Code variant={"solid"}>type: {type}</Code>
                     </Text>
-                    <TextField.Root
-                        value={type}
-                        placeholder="Flow"
-                    />
-                </label>
-            </Card>
+            </BotCard>
         }) 
-        await cards.card({
+         await screen1.card({
             preparing: spinner("Setting up UI Data..."),
             prepare: mock({theme: "dark", layout: "vertical"}),
-            done: ({theme, layout}) => <Card size="1">
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Theme
-                    </Text>
-                    <TextField.Root
-                        value={theme}
-                        placeholder="Theme"
-                    />
-                </label>
-                <label>
-                    <Text as="div" size="2" mb="1" weight="bold">
-                        Layout
-                    </Text>
-                    <TextField.Root
-                        value={layout}
-                        placeholder="Layout"
-                    />
-                </label>
-            </Card>
+            done: ({theme, layout}) =>  <BotCard showAvatar={false}>
+                <Flex direction="row" gap="2" wrap={"wrap"} >
+                <Text as="div" size="1" mb="1" >
+                    <Code variant={"outline"}>them:<ThemeButton initial={theme} /></Code> 
+                </Text>
+                <Text as="div" size="1" mb="1" >
+                    <Code variant={"outline"}>layout:<LayoutButton initial={layout} /></Code>
+                </Text> 
+                </Flex>
+            </BotCard> 
         }) 
-        await cards.card({
+        await screen1.card({
             preparing: spinner("Setting up Fields..."),
             prepare: mock<{fields:Fields}>({fields: [
                     {
@@ -263,15 +256,12 @@ export async function submitUserMessage(content: string) {
                         "data-valid-checkmark": false
                     }
                 ]}),
-            done: ({fields}) => <Card size="3">
-                <Text as="div" size="3" mb="1" weight="bold">
-                    Fields
-                </Text>
-                
-                <CodeBlock language={"json"} value={JSON.stringify(fields)}/>
+            done: ({fields}) => 
+                <FieldsCard fields={fields}/> 
+        })
 
-            </Card>
-        }) 
+        screen1.stream.done();
+      
         await cards.card({
             preparing: spinner("Setting up HTML..."),
             prepare: mock({src: "https://custom-screen-set.deno.dev/screens/Custom-ProgressiveRegistration"}),

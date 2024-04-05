@@ -62,4 +62,4 @@ export type Field = z.infer<typeof field>;
 
 export const fields = z.array(field);
 
-export declare type Fields = z.infer<typeof fields>;{
+export  type Fields = z.infer<typeof fields>;
