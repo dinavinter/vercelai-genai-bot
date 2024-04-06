@@ -81,7 +81,7 @@ const  EditorHTML =({node,editor}:NodeViewRendererProps) => {
 
                 }} >
                      <MessageCodeFrame  language={"html"} className={'language-html'}   >
-                        {node.textContent}
+                        {  node.textContent   }
                     </MessageCodeFrame>
                 </Card>
                   <Box  ml={"-15%"} mt={"2%"} p={"2%"} style={{

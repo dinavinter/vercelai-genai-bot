@@ -47,18 +47,56 @@ export const suggestionItems = createSuggestionItems([
     searchTerms: ["screen", "add", "new","step"],
     icon: <IconPlus size={18} />,
     command: ({ editor, range }) => {
+
+      // editor.
+      //     chain()
+      //       .focus()
+      //       .deleteRange(range)
+      //       .splitBlock()
+      //     .run();
+      
       editor
           .chain()
           .focus()
-          .commands
-          .toggleScreen( `<div id="example-screen"  data-width="auto"  data-caption="'Update Your Profile'" class="gigya-screen v2 portrait">
+          .deleteRange(range)
+          .insertContent( { 
+                type: "screen",
+                attrs: { id: "example-screen" },
+                content: [
+                  {
+                    type: "text",
+                    text: `<div id="example-screen"  data-width="auto"  data-caption="Update delivery details" class="gigya-screen v2 portrait">
                 <form class="gigya-complete-registration-form" id="example-screen">
-                    <!-- Here goes the input fields -->
-                        <input type="text" name="address" class="gigya-input-text" placeholder="Address" required="required">
-                        <input type="submit" value="Complete Registration" class="gigya-input-submit">
-                </form>
-            </div>` )
-           .run();
+                   <!-- Here goes the input fields -->
+                         <input type="text" name="address" class="gigya-input-text" placeholder="Address" required="required">
+                         <input type="checkbox" name="communication.delivery_email" class="gigya-input-checkbox" value="email" checked="checked"> Send me delivery updates</input>
+                         <input type="submit" value="Click here to order!" class="gigya-input-submit" />
+                 </form>
+          </div>`,
+                  },
+                ],
+              } )
+           
+          .run()
+
+
+      // editor
+      //     .chain()
+      //     .focus()
+      //     .deleteRange(range)
+      //     .splitBlock()
+      //     .toggleNode("screen", {
+      //       id: "example-screen",
+      //      
+      //       children: `<div id="example-screen"  data-width="auto"  data-caption="'Update Your Profile'" class="gigya-screen v2 portrait">
+      //           <form class="gigya-complete-registration-form" id="example-screen">
+      //               <!-- Here goes the input fields -->
+      //                   <input type="text" name="address" class="gigya-input-text" placeholder="Address" required="required">
+      //                   <input type="submit" value="Complete Registration" class="gigya-input-submit">
+      //           </form>
+      //       </div>`
+      //     }).setContent("example-screen")
+      //       .run();
     },
   } ,
    

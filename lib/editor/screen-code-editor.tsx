@@ -72,6 +72,7 @@ console.log(artifacts);
                 }
             })
         }}
+         
     />
 }
 

@@ -12,7 +12,7 @@ import {
 import { UploadImagesPlugin } from "novel/plugins";
 
 import { cx } from "class-variance-authority";
-import {HtmlNodeMark, StyleNode } from "@/components/novel/extensions/html-component";
+import {HtmlNodeMark, ScreenNode, StyleNode} from "@/components/novel/extensions/html-component";
 
 const aiHighlight = AIHighlight;
 const placeholder = Placeholder;
@@ -119,6 +119,7 @@ export const defaultExtensions = [
   horizontalRule,
   // aiHighlight,
   HtmlNodeMark,
-  StyleNode 
+  StyleNode ,
+  ScreenNode
       
 ];
