@@ -1,4 +1,5 @@
 import {
+  BanIcon,
   CheckSquare,
   Code,
   Heading1,
@@ -14,6 +15,7 @@ import {
 import { createSuggestionItems } from "novel/extensions";
 import { Command, renderItems } from "novel/extensions";
 import { uploadFn } from "./image-upload";
+import {IconPlus} from "@/components/ui/icons";
 
 export const suggestionItems = createSuggestionItems([
   {
@@ -40,68 +42,38 @@ export const suggestionItems = createSuggestionItems([
     },
   },
   {
-    title: "To-do List",
-    description: "Track tasks with a to-do list.",
-    searchTerms: ["todo", "task", "list", "check", "checkbox"],
-    icon: <CheckSquare size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleTaskList().run();
-    },
-  },
-  {
-    title: "Heading 1",
-    description: "Big section heading.",
-    searchTerms: ["title", "big", "large"],
-    icon: <Heading1 size={18} />,
+    title: "Screen",
+    description: "Add screen.",
+    searchTerms: ["screen", "add", "new","step"],
+    icon: <IconPlus size={18} />,
     command: ({ editor, range }) => {
       editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 1 })
-        .run();
+          .chain()
+          .focus()
+          .commands
+          .toggleScreen( `<div id="example-screen"  data-width="auto"  data-caption="'Update Your Profile'" class="gigya-screen v2 portrait">
+                <form class="gigya-complete-registration-form" id="example-screen">
+                    <!-- Here goes the input fields -->
+                        <input type="text" name="address" class="gigya-input-text" placeholder="Address" required="required">
+                        <input type="submit" value="Complete Registration" class="gigya-input-submit">
+                </form>
+            </div>` )
+           .run();
     },
-  },
+  } ,
+   
   {
-    title: "Heading 2",
-    description: "Medium section heading.",
-    searchTerms: ["subtitle", "medium"],
-    icon: <Heading2 size={18} />,
-    command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 2 })
-        .run();
-    },
-  },
-  {
-    title: "Heading 3",
-    description: "Small section heading.",
-    searchTerms: ["subtitle", "small"],
-    icon: <Heading3 size={18} />,
-    command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 3 })
-        .run();
-    },
-  },
-  {
-    title: "Bullet List",
-    description: "Create a simple bullet list.",
-    searchTerms: ["unordered", "point"],
+    title: "Field Set",
+    description: "Add field set.",
+    searchTerms: ["field"],
     icon: <List size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
   },
   {
-    title: "Numbered List",
-    description: "Create a list with numbering.",
+    title: "Field",
+    description: "Add a field.",
     searchTerms: ["ordered"],
     icon: <ListOrdered size={18} />,
     command: ({ editor, range }) => {
@@ -109,9 +81,9 @@ export const suggestionItems = createSuggestionItems([
     },
   },
   {
-    title: "Quote",
-    description: "Capture a quote.",
-    searchTerms: ["blockquote"],
+    title: "Import Screen",
+    description: "Import screen.",
+    searchTerms: ["import"],
     icon: <TextQuote size={18} />,
     command: ({ editor, range }) =>
       editor
@@ -122,14 +94,7 @@ export const suggestionItems = createSuggestionItems([
         .toggleBlockquote()
         .run(),
   },
-  {
-    title: "Code",
-    description: "Capture a code snippet.",
-    searchTerms: ["codeblock"],
-    icon: <Code size={18} />,
-    command: ({ editor, range }) =>
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
-  },
+   
   {
     title: "Image",
     description: "Upload an image from your computer.",

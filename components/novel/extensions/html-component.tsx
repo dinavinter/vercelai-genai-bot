@@ -160,12 +160,28 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
     addNodeView() {
         return ReactNodeViewRenderer(EditorHTML )
     },
+
+    addCommands() {
+        return {
+            setScreen: attributes => ({ commands }) => {
+                return commands.setNode(this.name, attributes)
+            }, 
+            toggleScreen: attributes => ({ commands }) => {
+                return commands.toggleNode(this.name, 'paragraph', attributes)
+            },
+          
+        }
+    }
 })
 
 declare module '@tiptap/core' {
 
     interface Commands<ReturnType> {
         html: {
+            setScreen: (attributes:any) => ReturnType,
+            toggleScreen: (attributes:any) => ReturnType,
+            
+            
             /**
              * Set a code mark
              */

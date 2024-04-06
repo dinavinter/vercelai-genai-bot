@@ -61,6 +61,7 @@ const Editor = ({ initialValue, onChange }: EditorProp) => {
             No results
           </EditorCommandEmpty>
           <EditorCommandList>
+ 
             {suggestionItems.map((item) => (
               <EditorCommandItem
                 value={item.title}

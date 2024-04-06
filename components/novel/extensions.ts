@@ -96,6 +96,7 @@ const starterKit = StarterKit.configure({
       class: cx("rounded-md bg-muted  px-1.5 py-1 font-mono font-medium"),
       spellcheck: "false",
     },
+    
   } ,
   horizontalRule: false,
   dropcursor: {
@@ -103,23 +104,20 @@ const starterKit = StarterKit.configure({
     width: 4,
   },
   gapcursor: false,
-  "story-frame": {
-    HTMLAttributes: {
-    },
-  } 
-   
+  
+    
 });
 
 export const defaultExtensions = [
   starterKit,
   placeholder,
-  tiptapLink,
-  tiptapImage,
-  updatedImage,
-  taskList,
-  taskItem,
+  // tiptapLink,
+  // tiptapImage,
+  // updatedImage,
+  // taskList,
+  // taskItem,
   horizontalRule,
-  aiHighlight,
+  // aiHighlight,
   HtmlNodeMark,
   StyleNode 
       
