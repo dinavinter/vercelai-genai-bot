@@ -29,6 +29,7 @@ interface EditorProp {
   initialValue?: JSONContent;
   onChange: (value: JSONContent) => void;
 }
+ 
 const Editor = ({ initialValue, onChange }: EditorProp) => {
   const [openNode, setOpenNode] = useState(false);
  
@@ -51,6 +52,7 @@ const Editor = ({ initialValue, onChange }: EditorProp) => {
         }}
         onUpdate={({ editor }) => {
           onChange(editor.getJSON());
+
         }}
         slotAfter={<ImageResizer />}
       >

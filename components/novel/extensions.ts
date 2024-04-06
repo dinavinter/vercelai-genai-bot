@@ -12,6 +12,7 @@ import {
 import { UploadImagesPlugin } from "novel/plugins";
 
 import { cx } from "class-variance-authority";
+import {HtmlNodeMark, StyleNode } from "@/components/novel/extensions/html-component";
 
 const aiHighlight = AIHighlight;
 const placeholder = Placeholder;
@@ -95,13 +96,18 @@ const starterKit = StarterKit.configure({
       class: cx("rounded-md bg-muted  px-1.5 py-1 font-mono font-medium"),
       spellcheck: "false",
     },
-  },
+  } ,
   horizontalRule: false,
   dropcursor: {
     color: "#DBEAFE",
     width: 4,
   },
   gapcursor: false,
+  "story-frame": {
+    HTMLAttributes: {
+    },
+  } 
+   
 });
 
 export const defaultExtensions = [
@@ -114,4 +120,7 @@ export const defaultExtensions = [
   taskItem,
   horizontalRule,
   aiHighlight,
+  HtmlNodeMark,
+  StyleNode 
+      
 ];

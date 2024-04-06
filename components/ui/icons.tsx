@@ -4,11 +4,12 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+export type IconProps = React.ComponentProps<'svg'> & { inverted?: boolean , size?: number}
 function IconNextChat({
   className,
   inverted,
   ...props
-}: React.ComponentProps<'svg'> & { inverted?: boolean }) {
+}: IconProps & { inverted?: boolean }) {
   const id = React.useId()
 
   return (
@@ -88,7 +89,7 @@ function IconNextChat({
   )
 }
 
-function IconOpenAI({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconOpenAI({ className, ...props }: IconProps) {
   return (
     <svg
       fill="currentColor"
@@ -104,7 +105,7 @@ function IconOpenAI({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconVercel({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconVercel({ className, ...props }: IconProps) {
   return (
     <svg
       aria-label="Vercel logomark"
@@ -121,7 +122,7 @@ function IconVercel({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconGitHub({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconGitHub({ className, ...props }: IconProps) {
   return (
     <svg
       role="img"
@@ -137,7 +138,7 @@ function IconGitHub({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconSeparator({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconSeparator({ className, ...props }: IconProps) {
   return (
     <svg
       fill="none"
@@ -156,7 +157,7 @@ function IconSeparator({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconArrowDown({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconArrowDown({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -170,7 +171,7 @@ function IconArrowDown({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconArrowRight({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconArrowRight({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +185,7 @@ function IconArrowRight({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconUser({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconUser({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -198,7 +199,7 @@ function IconUser({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconPlus({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconPlus({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -212,7 +213,7 @@ function IconPlus({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconArrowElbow({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconArrowElbow({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -226,7 +227,7 @@ function IconArrowElbow({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconSpinner({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconSpinner({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -240,7 +241,7 @@ function IconSpinner({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconMessage({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconMessage({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -254,7 +255,7 @@ function IconMessage({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconTrash({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconTrash({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -268,7 +269,7 @@ function IconTrash({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconRefresh({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconRefresh({ className, ...props }: IconProps &{size:number}) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -282,7 +283,7 @@ function IconRefresh({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconStop({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconStop({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -296,7 +297,7 @@ function IconStop({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconSidebar({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconSidebar({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +311,7 @@ function IconSidebar({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconMoon({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconMoon({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -324,7 +325,7 @@ function IconMoon({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconSun({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconSun({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -338,7 +339,7 @@ function IconSun({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconCopy({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconCopy({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -352,7 +353,7 @@ function IconCopy({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconCheck({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconCheck({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -366,7 +367,7 @@ function IconCheck({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconDownload({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconDownload({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -380,7 +381,7 @@ function IconDownload({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconClose({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconClose({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -394,7 +395,7 @@ function IconClose({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconEdit({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconEdit({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -414,7 +415,7 @@ function IconEdit({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconShare({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconShare({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -428,7 +429,7 @@ function IconShare({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-function IconUsers({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconUsers({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -445,7 +446,7 @@ function IconUsers({ className, ...props }: React.ComponentProps<'svg'>) {
 function IconExternalLink({
   className,
   ...props
-}: React.ComponentProps<'svg'>) {
+}: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -462,7 +463,7 @@ function IconExternalLink({
 function IconChevronUpDown({
   className,
   ...props
-}: React.ComponentProps<'svg'>) {
+}: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

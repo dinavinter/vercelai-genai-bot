@@ -4,9 +4,9 @@ import {useAIState} from "ai/rsc";
 import {AI} from "@/lib/chat/actions";
 
 export type HTMLPreviewProps = {
-    html: string,
-    css: string,
-    js: string
+    html?: string,
+    css?: string,
+    js?: string
 }
 
 export function ScreenSetPreview({id}:{id:string}){
