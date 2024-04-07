@@ -1,14 +1,20 @@
-import {NodeViewRendererProps, NodeViewWrapper, ReactNodeViewRenderer} from '@tiptap/react'
+import {NodeViewContent, NodeViewRendererProps, NodeViewWrapper, ReactNodeViewRenderer} from '@tiptap/react'
 import React from 'react'
 import {mergeAttributes, Node} from '@tiptap/core'
 import {CodeBlockOptions} from '@tiptap/extension-code-block'
-import {HTMLCode} from "@/lib/editor/code-block-card";
+import {HTMLCodeBlock} from "@/lib/editor/code-block-card";
+import {MessageCodeFrame} from "@/components/messages/message-codeframe";
+import {NodeViewWrapperProps} from "@tiptap/react/src/NodeViewWrapper";
 
-const  EditorHTML =({node,editor}:NodeViewRendererProps) => {
+const  EditorHTML:React.FC<NodeViewRendererProps> = React.forwardRef(({node,editor, ...props}, ref) =>  {
          const source = node.textContent;
-         return ( <NodeViewWrapper className="react-component-with-content">
-             <HTMLCode html={source} {...node.attrs} />
-        </NodeViewWrapper>  )
+         
+         return (
+             
+             <NodeViewWrapper className="react-component-with-content">
+                 {/*<NodeViewContent className="content"  /> */}
+                 <HTMLCodeBlock html={source} {...node.attrs} {...props} /> 
+             </NodeViewWrapper>  )
 
    /*
     <NodeViewWrapper className="react-component-with-content" >
@@ -29,7 +35,7 @@ const  EditorHTML =({node,editor}:NodeViewRendererProps) => {
         </NodeViewWrapper>
     */
     
-}
+})
 
 
 declare module '@tiptap/core' {
@@ -94,7 +100,9 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
         ]
     },
     addNodeView() {
+        const code =()=><code>code</code>
         return ReactNodeViewRenderer(EditorHTML )
+
     },
 
     addCommands() {

@@ -1,7 +1,7 @@
 import {HTMLPreviewProps, Preview} from "@/lib/editor/preview";
 import {Box, Card, Flex} from "@radix-ui/themes";
 import {MessageCodeFrame} from "@/components/messages/message-codeframe";
-import React from "react";
+import React, {FC} from "react";
 
 const mock_css = `.gigya-screen-set {
                                 font-family: Arial, sans-serif;
@@ -39,9 +39,10 @@ const mock_css = `.gigya-screen-set {
                             margin-bottom: 10px;
                         }`
 
-export function HTMLCode({html, css, js, onChange}: HTMLPreviewProps & {
+export const HTMLCodeBlock:FC< HTMLPreviewProps & {
     onChange?: (value: HTMLPreviewProps) => void
-}) {
+}>= React.forwardRef( ({html, css, js, onChange,...props}, ref)=> {
+
     return <Flex direction={"row"} className="overlay" gridColumn={"0"}>
         <Card size={"2"} m={"6"} style={{
             transformStyle: 'preserve-3d',
@@ -50,7 +51,7 @@ export function HTMLCode({html, css, js, onChange}: HTMLPreviewProps & {
             objectPosition: 'center',
 
         }}>
-            <MessageCodeFrame onChange={onChange} language={"html"} className={'language-html'}>
+            <MessageCodeFrame {...props} ref={ref} onChange={onChange} language={"html"} className={'language-html'} >
                 {html || `<div ></div>`}
             </MessageCodeFrame>
         </Card>
@@ -61,4 +62,4 @@ export function HTMLCode({html, css, js, onChange}: HTMLPreviewProps & {
             <Preview html={html} css={css || mock_css} js={js}/>
         </Box>
     </Flex>;
-}
+})
