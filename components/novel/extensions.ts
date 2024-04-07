@@ -12,7 +12,9 @@ import {
 import { UploadImagesPlugin } from "novel/plugins";
 
 import { cx } from "class-variance-authority";
-import {HtmlNodeMark, ScreenNode, StyleNode} from "@/components/novel/extensions/html-component";
+import {ScreenNode} from "@/components/novel/extensions/html-component";
+import {StyleNode} from "@/components/novel/extensions/css-mark";
+import {HtmlNodeMark} from "@/components/novel/extensions/html-node-mark";
 
 const aiHighlight = AIHighlight;
 const placeholder = Placeholder;
