@@ -79,11 +79,10 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
     },
     renderHTML({ node, HTMLAttributes }) {
         return [
-            'pre',
+            'screen-html', 
             mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
                 class: 'language-html',
-            }), 
-            0
+            }) 
         ]
     },
 
@@ -91,10 +90,7 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
     parseHTML( ) {
         return [
             {
-                tag: 'code',
-                style: 'display: block',
-                contentElement: 'code',
-                preserveWhitespace: 'full',
+                tag: 'screen-html'
                 
             },
         ]

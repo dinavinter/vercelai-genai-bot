@@ -66,14 +66,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
 
     >
      
-      <div
-        className={cn('pb-[200px] pt-4 md:pt-10', className)}
-        ref={messagesRef}
-      >
-        <ScreenCodeEditor id={id || "no-id"} />
-        {/*<ChatList messages={aiState.artifacts} isShared={false} />*/}
-        <div className="h-px w-full" ref={visibilityRef} />
-      </div>
+
       <ChatPanel
         id={id}
         input={input}
