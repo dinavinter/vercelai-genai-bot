@@ -118,6 +118,7 @@ export const defaultExtensions = [
   // updatedImage,
   // taskList,
   // taskItem,
+     
   horizontalRule,
   aiHighlight,
   HtmlNodeMark,

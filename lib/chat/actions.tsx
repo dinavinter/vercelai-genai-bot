@@ -29,14 +29,24 @@ export type Message = {
 }
 
 export type AIState = {
-  chatId: string
-  messages: Message[],
-  artifacts: {
-    [key:string]:{
-    html?: string
-    css?: string
-    js?: string 
-  }}
+    chatId: string
+    messages: Message[],
+    artifacts: {
+        components: {
+            [key: string]: { 
+                    html?: string
+                    css?: string
+                    js?: string
+                }
+            } ,
+        screens: {
+            [key: string]: {
+                html?: string
+                css?: string
+                js?: string
+            }
+        }
+    }
 }
 
 export type UIState = {

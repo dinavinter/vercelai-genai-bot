@@ -41,7 +41,7 @@ export const continueWithAi: SuggestionItem = {
     title: "Continue with AI",
     description: "Continue with AI.",
     searchTerms: ["ai", "add", "new", "step"],
-    icon: <Magic   className={"mr-2 h-4 w-4 shrink-0  "}/>,
+    icon: <Magic  className={"mr-2 h-4 w-4 shrink-0  "}/>,
     command: ({editor, range}) => {
         editor
             .chain()
