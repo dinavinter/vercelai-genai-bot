@@ -1,34 +1,11 @@
 import {ImageIcon, List, ListOrdered, MessageSquarePlus, Text, TextQuote,} from "lucide-react";
 import {Command, createSuggestionItems, renderItems} from "novel/extensions";
 import {uploadFn} from "./image-upload";
-import {add} from "@/components/novel/extensions/suggestions";
+import {addScreen, continueWithAi} from "@/components/novel/extensions/suggestions";
 
 export const suggestionItems = createSuggestionItems([
-  {
-    title: "Send Feedback",
-    description: "Let us know how we can improve.",
-    icon: <MessageSquarePlus size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).run();
-      window.open("/feedback", "_blank");
-    },
-  },
-  {
-    title: "Text",
-    description: "Just start typing with plain text.",
-    searchTerms: ["p", "paragraph"],
-    icon: <Text size={18} />,
-    command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .toggleNode("paragraph", "paragraph")
-        .run();
-    },
-  },
-  add ,
-   
+   continueWithAi,
+   addScreen , 
   {
     title: "Field Set",
     description: "Add field set.",
@@ -37,6 +14,7 @@ export const suggestionItems = createSuggestionItems([
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
+    isActive: ({ editor }) => editor.isActive("screen"),
   },
   {
     title: "Field",
@@ -81,6 +59,15 @@ export const suggestionItems = createSuggestionItems([
         }
       };
       input.click();
+    },
+  },
+  {
+    title: "Send Feedback",
+    description: "Let us know how we can improve.",
+    icon: <MessageSquarePlus size={18} />,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      window.open("/feedback", "_blank");
     },
   },
 ]);

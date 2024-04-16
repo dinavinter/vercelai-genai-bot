@@ -1,20 +1,53 @@
-import {NodeViewContent, NodeViewRendererProps, NodeViewWrapper, ReactNodeViewRenderer} from '@tiptap/react'
+import {NodeViewRendererProps, NodeViewWrapper, ReactNodeViewRenderer} from '@tiptap/react'
 import React from 'react'
 import {mergeAttributes, Node} from '@tiptap/core'
 import {CodeBlockOptions} from '@tiptap/extension-code-block'
 import {HTMLCodeBlock} from "@/lib/editor/code-block-card";
-import {MessageCodeFrame} from "@/components/messages/message-codeframe";
-import {NodeViewWrapperProps} from "@tiptap/react/src/NodeViewWrapper";
+import {Box, Grid} from "@radix-ui/themes";
+import {AICommands} from "@/components/novel/extensions/ai-commands";
 
-const  EditorHTML:React.FC<NodeViewRendererProps> = React.forwardRef(({node,editor, ...props}, ref) =>  {
+
+const  EditorHTML:React.FC<NodeViewRendererProps> = React.forwardRef(({node,editor,getPos, ...props}, ref) =>  {
          const source = node.textContent;
-         
-         return (
+
+
+    return (
              
-             <NodeViewWrapper className="react-component-with-content">
-                 {/*<NodeViewContent className="content"  /> */}
-                 <HTMLCodeBlock html={source} {...node.attrs} {...props} /> 
-             </NodeViewWrapper>  )
+             <NodeViewWrapper className="react-component-with-content" style={{
+                 selectable: true,
+                 alignSelf: "center", marginLeft: "20%"
+             }}>
+                 <Grid>
+                     <Box className={"w-full"} style={{
+                         display: "flex",
+                         flexDirection: "row",
+                         justifyContent: "left",
+                         justifyItems: "flex-end"
+                     }}>
+                        <AICommands /> 
+                     </Box>
+
+                     {/* <button onClick={() => {*/}
+                     {/*     const tr = editor.state.tr;*/}
+
+                     {/*     console.log('click', getPos, getPos instanceof Function && getPos(), editor.isActive('screen') )*/}
+                     {/*     console.log('click', editor.state.selection, tr.selection, tr.selection.content(), tr.selectionSet)*/}
+                     {/*     */}
+                     {/*     editor.chain().focus()*/}
+                     {/*         .setNodeSelection(getPos())*/}
+
+                     {/*     console.log('click', getPos, getPos instanceof Function && getPos(), editor.isActive('screen') )*/}
+
+                     {/* } }>::*/}
+                     {/*</button>*/}
+                     {/*<div ref={ref}>*/}
+                     {/*<NodeViewContent className="content"  /> */}
+                     <HTMLCodeBlock html={source} {...node.attrs} {...props}  />
+                 </Grid>
+                 {/*</div>*/}
+             </NodeViewWrapper>
+        
+)
 
    /*
     <NodeViewWrapper className="react-component-with-content" >
@@ -58,13 +91,14 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
     group: 'block list',
     // isolating: true,
     // code: true,
-    // atom: true,
+    atom: true,
     // defining: true,
+    
     inclusive: true, 
     exitable: true,
     selectable: true,
-    // dragable: true,
-
+    dragable: true,
+   
     onUpdate: ():void => {
         console.log('onUpdate', this);
     },
@@ -75,13 +109,14 @@ export const ScreenNode= Node.create<HtmlNodeOptions>({
             lang:"html",
             'data-language': "html",
            class: 'language-html',
+            
         }
     },
     renderHTML({ node, HTMLAttributes }) {
         return [
             'screen-html', 
             mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-                class: 'language-html',
+                class: "rounded-md bg-muted text-muted-foreground border p-5 font-mono font-medium",
             }) 
         ]
     },

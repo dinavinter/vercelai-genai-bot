@@ -11,6 +11,7 @@ import {NovelIde} from "@/components/novel/novel-ide";
 export default async function IndexPage({params: {id}}: ChatPageProps) {
     // const id = nanoid() 
     return (<Grid columns="4" gap="3" rows="2" width="auto">
+           
 
 
         <Section gridColumn={"1"} gridColumnEnd={"5"}>
@@ -21,7 +22,7 @@ export default async function IndexPage({params: {id}}: ChatPageProps) {
             <ScreenSetPreview id={id} />
             {/*<iframe src={"https://custom-screen-set.deno.dev/screens/Custom-ProgressiveRegistration"} height={"100%"} width={"100%"}/>*/}
         </Box>
-
+     
 
         </Grid>
     )

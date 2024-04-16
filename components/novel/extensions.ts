@@ -119,7 +119,7 @@ export const defaultExtensions = [
   // taskList,
   // taskItem,
   horizontalRule,
-  // aiHighlight,
+  aiHighlight,
   HtmlNodeMark,
   StyleNode ,
   ScreenNode

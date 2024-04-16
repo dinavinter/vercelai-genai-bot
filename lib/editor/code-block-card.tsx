@@ -43,10 +43,16 @@ export const HTMLCodeBlock:FC< HTMLPreviewProps & {
     onChange?: (value: HTMLPreviewProps) => void
 }>= React.forwardRef( ({html, css, js, onChange,...props}, ref)=> {
 
-    return <Flex direction={"row"} className="overlay" gridColumn={"0"}>
+    const onfocus=()=>{
+        console.log('focused')
+    }
+    return <Flex direction={"row"}   gridColumn={"1"} style={{ cursor: 'pointer' }} onFocus={onfocus}>
+        <style>
+            
+        </style>
         <Card size={"2"} m={"6"} style={{
             transformStyle: 'preserve-3d',
-            width: '50%',
+             width: '35%',
             objectFit: 'contain',
             objectPosition: 'center',
 
@@ -55,10 +61,11 @@ export const HTMLCodeBlock:FC< HTMLPreviewProps & {
                 {html || `<div ></div>`}
             </MessageCodeFrame>
         </Card>
-        <Box ml={"-15%"} mt={"2%"} p={"2%"} style={{
+        <Box ml={"-15%"} mt={"1%"} p={"1%"}   style={{
             zIndex: 2,
-            backdropFilter: 'blur(1.5px)',
-        }}>
+            width: '10%', 
+            backdropFilter: 'blur(1.5px)', 
+         }}>
             <Preview html={html} css={css || mock_css} js={js}/>
         </Box>
     </Flex>;

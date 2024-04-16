@@ -1,9 +1,10 @@
 import {SuggestionItem} from "novel/dist/extensions";
-import {IconPlus} from "@/components/ui/icons";
+import {IconOpenAI, IconPlus} from "@/components/ui/icons";
 import {SelectorItem} from "@/components/novel/selectors/node-selector";
 import {Code} from "lucide-react";
+import Magic from "@/components/novel/ui/icons/magic";
 
-export const add: SuggestionItem = {
+export const addScreen: SuggestionItem = {
     title: "Screen",
     description: "Add screen.",
     searchTerms: ["screen", "add", "new", "step"],
@@ -30,6 +31,39 @@ export const add: SuggestionItem = {
                     },
                 ],
             }) 
+            .run()
+
+
+    }
+};
+
+export const continueWithAi: SuggestionItem = {
+    title: "Continue with AI",
+    description: "Continue with AI.",
+    searchTerms: ["ai", "add", "new", "step"],
+    icon: <Magic   className={"mr-2 h-4 w-4 shrink-0  "}/>,
+    command: ({editor, range}) => {
+        editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+                type: "screen",
+                attrs: {id: "example-screen"},
+                content: [
+                    {
+                        type: "text",
+                        text: `<div id="example-screen"  data-width="auto"  data-caption="Update delivery details" class="gigya-screen v2 portrait">
+              <form class="gigya-complete-registration-form" id="example-screen">
+                 <!-- Here goes the input fields -->
+                       <input type="text" name="address" class="gigya-input-text" placeholder="Address" required="required">
+                       <input type="checkbox" name="communication.delivery_email" class="gigya-input-checkbox" value="email" checked="checked"> Send me delivery updates</input>
+                       <input type="submit" value="Click here to order!" class="gigya-input-submit" />
+               </form>
+        </div>`,
+                    },
+                ],
+            })
             .run()
 
 
