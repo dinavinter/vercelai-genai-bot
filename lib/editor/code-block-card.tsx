@@ -63,7 +63,7 @@ export const HTMLCodeBlock:FC< HTMLPreviewProps & {
         </Card>
         <Box ml={"-15%"} mt={"1%"} p={"1%"}   style={{
             zIndex: 2,
-            width: '10%', 
+            width: '30%', 
             backdropFilter: 'blur(1.5px)', 
          }}>
             <Preview html={html} css={css || mock_css} js={js}/>
